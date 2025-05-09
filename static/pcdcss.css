@@ -1,0 +1,172 @@
+body {
+    height: 100vh; background-image: linear-gradient(to bottom right, #baccda, #0531a8);
+    
+}
+
+input, button,h2 {
+    border-radius: 17px !important;
+    border: black;
+    background-color: #ffffff;
+    padding: 10px;
+    margin: 20px;
+}
+button{background-color: #3263e9;}
+
+.cardff {
+    border-radius: 20px;
+    transition: all 0.1s ease;
+    width: 450px; height: 300px; backdrop-filter: blur(10px); background-color: rgba(237, 234, 234, 0.8);
+    position: absolute;
+    top: 40%;
+    left: 40%;
+    
+    
+}
+
+.cardff:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(21, 214, 79, 0.2);
+}
+.car{border: #ffffff;
+padding: 40px;}
+form{display: flex;
+    border: #3263e9;
+    flex-direction: column ; 
+
+    justify-content: center ;}
+.Get{
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    background-repeat: no-repeat; 
+    background-size: cover;
+    background-position: center;
+    animation: slideBackground 8s infinite;
+}
+
+/* Animation for background image slideshow */
+@keyframes slideBackground {
+    0% {
+        background-image: url('image.png');
+    }
+
+    33% {
+        background-image: url('image2.png');
+    }
+
+    66% {
+        background-image: url('image3.png');
+    }
+
+    100% {
+        background-image: url('image4.png');
+    }
+}
+
+.content {
+    text-align: center;
+    color: #3263e9;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3em;
+    
+    
+}
+.con{border-radius: 20px;
+    transition: all 0.1s ease;
+    width: 600px; height: 200px; backdrop-filter: blur(70px); 
+    position: absolute;
+    top: 40%;
+    left: 35%;
+display: flex;
+justify-content: center;}
+.con:hover{transform: scale(1.02);}
+    
+/* Sliding animation for the h2 */
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(-100%);
+        opacity: 1;
+    }
+}
+
+h1 {
+    font-size: 6em;
+    text-align: center;
+    animation: slideIn 2s  ease-in-out,slideOut 2s  ease-in-out 5s;
+    animation-fill-mode: forwards;
+    color: #d1dbf7;
+    
+
+    
+    background-color:#3263e9;
+}
+.bodyl {
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f2f5;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+.login-form {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(208, 52, 52, 0.1);
+    width: 350px;
+}
+.login-form h2 {
+    margin-bottom: 20px;
+    text-align: center;
+    color: #333333;
+}
+.login-form input[type="text"],
+.login-form input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0 20px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+.login-form button {
+    width: 100%;
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.login-form button:hover {
+    background-color: #45a049;
+}
+.login-form .signup-link {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 14px;
+}
+.login-form .signup-link a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+

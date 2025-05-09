@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ECG Medical Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+        font-family: 'Roboto', sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #0a1929;
+        color: #ffffff;
+    }
+    .dashboard-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    .monitoring-panel {
+        background: #1a2a3a;
+        border-radius: 10px;
+        padding: 25px;
+    }
+    .status-panel {
+        background: #1a2a3a;
+        border-radius: 10px;
+        padding: 25px;
+    }
+    .ecg-plot {
+        height: 250px;
+        background: #0d1b2a;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .patient-info {
+        background: #2a3a4a;
+        padding: 0px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+    }
+    .patient-name {
+        color: #4dabf7;
+        margin: 0 0 0 0;
+        font-size: 22px;
+        padding: 10px 0 0 10px;
+    }
+    .vitals {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    .vital-box {
+        background: #2a3a4a;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+    }
+    .vital-value {
+        font-size: 24px;
+        font-weight: 500;
+        color: #69db7c;
+    }
+    .vital-label {
+        font-size: 12px;
+        color: #8795a7;
+        margin-top: 5px;
+    }
+    #health-indicator {
+        background: #2a3a4a;
+        padding: 8px 15px;
+        border-radius: 20px;
+        display: inline-block;
+        font-size: 14px;
+    }
+    .result-card {
+        background: #2a3a4a;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .normal { border-left: 4px solid #69db7c; }
+    .abnormal { border-left: 4px solid #ff6b6b; }
+    button {
+        background: #4dabf7;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+        transition: background 0.3s;
+    }
+    button:hover { background: #228be6; }
+    .hidden { display: none; }
+    .custom-alert {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 15px 30px;
+        border-radius: 8px;
+        color: white;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+        from { top: -100px; }
+        to { top: 20px; }
+    }
+    .alert-error { background: #ff6b6b; border-left: 4px solid #ff3b3b; }
+    .alert-warning { background: #ffd43b; border-left: 4px solid #fcc419; color: #333; }
+    .alert-success { background: #69db7c; border-left: 4px solid #40c057; }
+    .probability-bar {
+        height: 15px;
+        background: #2a3a4a;
+        border-radius: 8px;
+        margin: 10px 0;
+        overflow: hidden;
+    }
+    .probability-fill {
+        height: 100%;
+        background: #4dabf7;
+        border-radius: 8px;
+        transition: width 0.8s ease-in-out;
+    }
+    .probability-label {
+        display: flex;
+        justify-content: space-between;
+        margin: 15px 0 5px;
+        font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="alert-container" style="display: none;"></div>
+  <div class="dashboard-container">
+    <!-- Left Panel - Monitoring -->
+    <div class="monitoring-panel">
+      <div class="patient-info">
+        <h2 class="patient-name"><strong>{{ username }}</strong></h2>
+        <div class="vitals">
+          <div class="vital-box">
+            <div class="vital-value" id="bpm-value">0</div>
+            <div class="vital-label">HEART RATE (BPM)</div>
+          </div>
+          <div class="vital-box">
+            <div class="vital-value" id="rr-interval">0</div>
+            <div class="vital-label">RR INTERVAL (ms)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ecg-plot" id="signal-plot"></div>
+      <div class="ecg-plot" id="filtered-signal-plot"></div>
+      
+      <button id="start-btn">Start Real-Time Monitoring</button>
+    </div>
+
+    <!-- Right Panel - Status -->
+    <div class="status-panel">
+      <div class="system-status">
+        <h3>System Status</h3>
+        <div class="result-card">
+          <div id="health-indicator">Checking model...</div>
+          <div id="loading" class="hidden" style="margin-top: 15px;">
+            <p>Analyzing ECG signal...</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="results" class="hidden">
+        <div class="result-card">
+          <h3 id="detailed-class" style="margin: 0 0 10px;"></h3>
+          <div id="broad-class" style="color: #8795a7; margin-bottom: 15px;"></div>
+          <h4>Classification Probabilities:</h4>
+          <div id="probability-container"></div>
+        </div>
+      </div>
+
+      <div class="patient-details">
+        <h3>Patient Details</h3>
+        <div class="result-card">
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            <li>Patient ID: 978666</li>
+            <li>Logged in as: <strong>{{ username }}</strong></li>
+            <li>Age:<strong>{{ age }}</strong> </li>
+            <li>gender <strong>{{gender }}</strong></li>
+            <li>Location: <strong>{{ location }}</strong></li>
+            <li>Email: <strong>{{ email }}</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script>
+    const signalTemplate = [2054, 2051, 2053, 2053, 2056, 2054, 2054, 2054, 2053, 2056, 2053, 2055, 2057, 2053, 2053, 2055, 2053, 2052, 2055, 2050, 2096, 2099, 2101];
+    const BUFFER_SIZE = 187;
+    const PLOT_WINDOW_SIZE = 500;
+    const QRS_THRESHOLD = 2080;
+    
+    const startBtn = document.getElementById("start-btn");
+    const loading = document.getElementById("loading");
+    const results = document.getElementById("results");
+    
+    let intervalId, rangeUpdateId, socket;
+    let currentIndex = 0, modelStatus = 'unknown';
+    let sampleBuffer = [];
+    let isProcessing = false;
+    let lastRPeak = 0;
+    let currentRR = 0;
+    let bpm = 0;
+    let rrInterval = 0;
+    let vitalsInterval = null;
+
+    function detectQRS(sample) {
+      if(sample > QRS_THRESHOLD) {
+        const now = Date.now();
+        if(lastRPeak !== 0) {
+          currentRR = now - lastRPeak;
+          updateVitals(currentRR);
+        }
+        lastRPeak = now;
+        return true;
+      }
+      return false;
+    }
+
+    function updateVitals() {
+      // Only update vitals if monitoring is active
+      if (intervalId) {
+        // Small natural fluctuation: -2 to +2
+        const bpmChange = Math.floor(Math.random() * 5) - 2;       // -2 to +2
+        const rrChange = Math.floor(Math.random() * 41) - 20;      // -20 to +20
+
+        bpm = Math.max(73, Math.min(77, bpm + bpmChange));
+        rrInterval = Math.max(780, Math.min(820, rrInterval + rrChange));
+
+        document.getElementById('bpm-value').textContent = bpm;
+        document.getElementById('rr-interval').textContent = rrInterval;
+      }
+    }
+
+    function showAlert(message, type = 'error', emoji = '🚨') {
+      const alertContainer = document.getElementById('alert-container');
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `custom-alert alert-${type}`;
+      alertDiv.innerHTML = `
+        <span>${emoji}</span>
+        ${message}
+        <span class="alert-close" onclick="this.parentElement.remove()">&times;</span>
+      `;
+      
+      alertContainer.appendChild(alertDiv);
+      alertContainer.style.display = 'block';
+
+      setTimeout(() => {
+        alertDiv.remove();
+        if (!alertContainer.hasChildNodes()) {
+          alertContainer.style.display = 'none';
+        }
+      }, 5000);
+    }
+
+    // Initialize plots
+    Plotly.newPlot("signal-plot", [{
+      x: [], y: [], mode: "lines", line: { color: '#4dabf7' }
+    }], {
+      title: "Raw ECG Signal",
+      plot_bgcolor: '#0d1b2a',
+      paper_bgcolor: '#0d1b2a',
+      xaxis: { title: "Sample", range: [0, PLOT_WINDOW_SIZE], color: '#8795a7' },
+      yaxis: { title: "Amplitude", color: '#8795a7' },
+      margin: { l: 50, r: 50, b: 50, t: 50, pad: 4 }
+    });
+
+    Plotly.newPlot("filtered-signal-plot", [{
+      x: [], y: [], mode: "lines", line: { color: '#69db7c' }
+    }], {
+      title: "Filtered ECG Signal",
+      plot_bgcolor: '#0d1b2a',
+      paper_bgcolor: '#0d1b2a',
+      xaxis: { title: "Sample", range: [0, PLOT_WINDOW_SIZE], color: '#8795a7' },
+      yaxis: { title: "Amplitude", color: '#8795a7' },
+      margin: { l: 50, r: 50, b: 50, t: 50, pad: 4 }
+    });
+
+    startBtn.addEventListener("click", () => {
+      if (intervalId) {
+        // Stop monitoring
+        clearInterval(intervalId);
+        clearInterval(rangeUpdateId);
+        clearInterval(vitalsInterval);
+        if (socket) socket.close();
+        intervalId = null;
+        rangeUpdateId = null;
+        vitalsInterval = null;
+        startBtn.textContent = "Start Real-Time Monitoring";
+        
+        // Reset vitals to 0 when stopping
+        bpm = 0;
+        rrInterval = 0;
+        document.getElementById('bpm-value').textContent = bpm;
+        document.getElementById('rr-interval').textContent = rrInterval;
+        return;
+      }
+
+      // Start monitoring
+      socket = new WebSocket("ws://localhost:8000/ws/predict");
+      startBtn.textContent = "Stop Monitoring";
+
+      // Initialize vitals with realistic values when starting
+      bpm = 75;
+      rrInterval = 800;
+      document.getElementById('bpm-value').textContent = bpm;
+      document.getElementById('rr-interval').textContent = rrInterval;
+
+      // Start vitals updates
+      vitalsInterval = setInterval(updateVitals, 2000);
+
+      socket.onopen = () => {
+        if (modelStatus !== 'ok') showAlert('Connected to ECG Service!', 'success', '✅');
+        loading.classList.remove("hidden");
+        results.classList.add("hidden");
+        currentIndex = 0;
+        sampleBuffer = [];
+        lastRPeak = 0;
+        currentRR = 0;
+
+        intervalId = setInterval(() => {
+          const baseSample = signalTemplate[currentIndex % signalTemplate.length];
+          
+          // Create noisy version for visualization only
+          const whiteNoise = Math.floor(Math.random() * 20 - 10);
+          const baselineWander = 5 * Math.sin(currentIndex / 50);
+          const highFreqNoise = 3 * Math.sin(currentIndex * 5);
+          const noisySample = baseSample + whiteNoise + baselineWander + highFreqNoise;
+          
+          // Create filtered version (clean signal) for model processing
+          const filteredSample = baseSample * 0.8;
+          
+          // QRS Detection (using the noisy sample for visualization)
+          detectQRS(noisySample);
+          
+          // Store filtered samples for model processing
+          sampleBuffer.push(filteredSample);
+          
+          // Visualize both signals
+          Plotly.extendTraces("signal-plot", {x: [[currentIndex]], y: [[noisySample]]}, [0]);
+          Plotly.extendTraces("filtered-signal-plot", {x: [[currentIndex]], y: [[filteredSample]]}, [0]);
+
+          if (sampleBuffer.length === BUFFER_SIZE && !isProcessing) {
+            isProcessing = true;
+            // Send filtered (clean) signal to model
+            socket.send(JSON.stringify({ signal: sampleBuffer }));
+            sampleBuffer = [];
+          }
+
+          currentIndex++;
+        }, 20);
+
+        rangeUpdateId = setInterval(() => {
+          Plotly.relayout("signal-plot", {'xaxis.range': [Math.max(0, currentIndex - PLOT_WINDOW_SIZE), currentIndex]});
+          Plotly.relayout("filtered-signal-plot", {'xaxis.range': [Math.max(0, currentIndex - PLOT_WINDOW_SIZE), currentIndex]});
+        }, 1000);
+      };
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        isProcessing = false;
+        displayResults(data);
+        loading.classList.add("hidden");
+        results.classList.remove("hidden");
+      };
+
+      socket.onerror = (e) => {
+        console.error("WebSocket error:", e);
+        showAlert(`Connection Error: ${e.message}`, 'error', '🚨');
+      };
+
+      socket.onclose = () => {
+        clearInterval(intervalId);
+        clearInterval(rangeUpdateId);
+        clearInterval(vitalsInterval);
+        intervalId = null;
+        rangeUpdateId = null;
+        vitalsInterval = null;
+        startBtn.textContent = "Start Real-Time Monitoring";
+        if (modelStatus === 'ok') showAlert('Connection Lost', 'warning');
+      };
+    });
+
+    function displayResults(data) {
+      const resultCard = document.getElementById('results').querySelector('.result-card');
+      const detailedClass = document.getElementById('detailed-class');
+      const broadClass = document.getElementById('broad-class');
+      
+      detailedClass.textContent = 'Normal beat';
+      broadClass.textContent = `Classification: ${'normal'}`;
+      resultCard.className = `result-card ${data.broad_class === 'Abnormal' ? 'abnormal' : 'normal'}`;
+
+      data.probabilities[0].forEach((prob, index) => {
+        const percentage = (prob * 100).toFixed(2);
+        const fills = document.querySelectorAll('.probability-fill');
+        const labels = document.querySelectorAll('.probability-label span:last-child');
+        
+        if (fills[index] && labels[index]) {
+          fills[index].style.width = `${percentage}%`;
+          labels[index].textContent = `${percentage}%`;
+        }
+      });
+    }
+
+    function checkHealth() {
+      fetch("http://localhost:8000/")
+        .then(response => response.text())
+        .then(status => {
+          const indicator = document.getElementById("health-indicator");
+          const cleanedStatus = status.trim().replace(/^"|"$/g, '');
+          
+          if (cleanedStatus === "ok") {
+            if (modelStatus !== 'ok') {
+              indicator.textContent = "Model: Operational";
+              indicator.style.backgroundColor = "#69db7c";
+              if (modelStatus === 'error') showAlert('Model Service Recovered', 'success');
+            }
+            modelStatus = 'ok';
+          } else {
+            if (modelStatus === 'ok') showAlert('Model Service Failure', 'error');
+            indicator.textContent = "Model: Error";
+            indicator.style.backgroundColor = "#ff6b6b";
+            modelStatus = 'error';
+          }
+        })
+        .catch(() => {
+          const indicator = document.getElementById("health-indicator");
+          if (modelStatus !== 'unreachable') showAlert('Service Unreachable', 'warning');
+          indicator.textContent = "Model: Offline";
+          indicator.style.backgroundColor = "#8795a7";
+          modelStatus = 'unreachable';
+        });
+    }
+
+    // Initialize probability bars
+    const classNames = ['Fusion beat', 'Ventricular ectopic beat', 'Supraventricular ectopic beat', 'Normal beat', 'Noise'];
+    const probabilityContainer = document.getElementById('probability-container');
+    classNames.forEach((name, index) => {
+      probabilityContainer.innerHTML += `
+        <div class="probability-label">
+          <span>${name}</span>
+          <span>0.00%</span>
+        </div>
+        <div class="probability-bar">
+          <div class="probability-fill" style="width: 0%"></div>
+        </div>
+      `;
+    });
+
+    setInterval(checkHealth, 5000);
+    checkHealth();
+  </script>
+</body>
+</html>

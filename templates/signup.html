@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription</title>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            background-image: linear-gradient(to bottom right, #baccda, #0531a8);
+    
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .signup-form {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+        .signup-form h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+        .signup-form input[type="text"],
+        .signup-form input[type="email"],
+        .signup-form input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 15px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .signup-form button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .signup-form button:hover {
+            background-color: #0056b3;
+        }
+        .signup-form .signin-link {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .signup-form .signin-link a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <form class="signup-form" method="POST" action="/signup">
+        <h2>Créer un compte</h2>
+
+        <input type="text" name="fullname" placeholder="Nom complet" required>
+        
+        <input type="email" name="email" placeholder="Email" required>
+        
+        <input type="text" name="username" placeholder="Nom d'utilisateur" required>
+        
+        <input type="password" name="password" placeholder="Mot de passe" required>
+        
+        <input type="password" name="confirm_password" placeholder="Confirmer mot de passe" required>
+        
+        <button type="submit">S'inscrire</button>
+
+        <div class="signin-link">
+            Vous avez déjà un compte ? <a href="/login">Se connecter</a>
+        </div>
+    </form>
+
+</body>
+</html>

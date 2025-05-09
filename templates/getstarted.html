@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Background Slideshow</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="text/html; charset=iso-8859-2" http-equiv="Content-Type">
+    <link rel="stylesheet" href="{{ url_for('static', filename='pcdcss.css') }}">
+    
+</head>
+
+<body class="Get">
+    <h1>Welcome to My Website!</h1>
+    <script>
+        // Function to log all available voices
+        
+
+            // If voices are not yet available, load them after a short delay
+            if (voices.length === 0) {
+                window.speechSynthesis.onvoiceschanged = function() {
+                    voices = window.speechSynthesis.getVoices();
+                    // Listen to each voice
+                    voices.forEach(function(voice) {
+                        var msg = new SpeechSynthesisUtterance("This is a test of the " + voice.name);
+                        msg.voice = voice;  // Set the voice to the current one
+                        window.speechSynthesis.speak(msg);
+                    });
+                };
+            } else {
+                // Listen to each voice immediately
+                voices.forEach(function(voice) {
+                    var msg = new SpeechSynthesisUtterance("This is a test of the " + voice.name);
+                    msg.voice = voice;  // Set the voice to the current one
+            //   # window.speechSynthesis.speak(msg);
+                });
+            }
+        
+            
+    </script>
+    
+   
+
+    
+    <a href="{{ url_for('homee') }}" >
+        <div class="con"><h2 class="content">GET STARTED</h2></div>
+        
+            
+        
+      </a>
+    
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Prédiction Produit</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='pcdcss.css') }}">
+</head>
+<body >
+    
+
+    <div class="cardff">
+        <div class="car"><h2 >🔍 classifier le signal
+            
+        </h2>
+
+        <form method="POST">
+            <input type="text" name="marque" placeholder="Marque" class="form-control mb-3" required>
+            
+            <button type="submit" class="btn btn-primary w-100">Prédire</button>
+        </form>
+
+        {% if result %}
+        <div class="alert alert-success mt-4">
+            {{ result }}
+        </div>
+        {% endif %}</div>
+        
+    </div>
+
+</body>
+</html>

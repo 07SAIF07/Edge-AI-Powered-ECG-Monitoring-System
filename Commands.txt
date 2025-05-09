@@ -1,0 +1,6 @@
+pi@raspberrypi:~/Desktop/pcdinterface $:
+ python main.py
+
+
+pi@raspberrypi:~/Desktop/pcdinterface/model_pcd_f $ : 
+ uvicorn main:app --reload
